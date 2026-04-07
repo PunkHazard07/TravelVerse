@@ -1,0 +1,17 @@
+
+.date-input {
+  color: #374151;
+  cursor: pointer;
+}
+
+.date-input:focus {
+  color: #1f2937;
+}
+
+.date-input:invalid {
+  color: #9ca3af;
+}
+
+.date-input:valid {
+  color: #374151;
+}
