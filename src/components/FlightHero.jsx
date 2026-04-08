@@ -107,7 +107,7 @@ const TravellersDropdown = ({ value, onChange }) => {
 
       {/* Panel */}
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-4 min-w-[280px]">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-4 min-w-70">
           {/* Counters */}
           <CounterRow
             label="Adults" sublabel="Age 12+"

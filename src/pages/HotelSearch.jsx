@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Star,
@@ -14,6 +14,9 @@ const API_BASE = import.meta.env.VITE_API_URL;
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop";
 
+  const stripHtml = (html = "") =>
+  html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
 const HotelSearch = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -21,17 +24,13 @@ const HotelSearch = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
-  const [appliedFilters, setAppliedFilters] = useState({
-    minRating: 0,
-    maxPrice: 500000,
-  });
-
-  const [filters, setFilters] = useState({
-    minRating: 0,
-    maxPrice: 500000,
-  });
-
+  const urlMinRating = parseFloat(searchParams.get("minRating") || "0") || 0;
+  const defaultFilters = {
+    minRating: urlMinRating,
+    maxPrice: 500000
+  }
+  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
+  const [filters, setFilters ] = useState(defaultFilters)
   const [sortBy, setSortBy] = useState("recommended");
   const [appliedSortBy, setAppliedSortBy] = useState("recommended");
   const [showFilters, setShowFilters] = useState(false);
@@ -62,10 +61,7 @@ const HotelSearch = () => {
         const response = await fetch(`${API_BASE}/hotels?${queryParams.toString()}`);
         if (!response.ok) throw new Error(`Failed to fetch hotels: ${response.status}`);
         const data = await response.json();
-        let hotelsData = [];
-        if (data.success && data.data) hotelsData = data.data;
-        else if (Array.isArray(data.data)) hotelsData = data.data;
-        else if (Array.isArray(data)) hotelsData = data;
+        const hotelsData = data.success && Array.isArray(data.data) ? data.data : [];
         setHotels(hotelsData);
         setInitialLoadComplete(true);
       } catch (error) {
@@ -77,39 +73,65 @@ const HotelSearch = () => {
     fetchHotels();
   }, [searchParams]);
 
-  useEffect(() => {
+  const performAdvancedSearch = useCallback(async () => {
     if (!initialLoadComplete) return;
-    const performAdvancedSearch = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const city = searchParams.get("city");
-        const country = searchParams.get("country");
-        if (!city) { setError("City is required"); setLoading(false); return; }
-        const queryParams = new URLSearchParams({
-          city,
-          ...(country && { country }),
-          minRating: appliedFilters.minRating,
-          maxPrice: appliedFilters.maxPrice,
-          sortBy: appliedSortBy,
-          limit: 100,
-        });
-        const response = await fetch(`${API_BASE}/hotels/advanced-search?${queryParams.toString()}`);
-        if (!response.ok) throw new Error(`Failed to perform advanced search: ${response.status}`);
-        const data = await response.json();
-        let hotelsData = [];
-        if (data.success && data.data) hotelsData = data.data;
-        else if (Array.isArray(data.data)) hotelsData = data.data;
-        else if (Array.isArray(data)) hotelsData = data;
-        setHotels(hotelsData);
-      } catch (error) {
-        setError(error.message || "An error occurred");
-      } finally {
+
+    setLoading(true);
+    setError(null);
+    try {
+      const city = searchParams.get("city");
+      const country = searchParams.get("country");
+
+      if (!city) {
+        setError("City is required");
         setLoading(false);
+        return;
       }
-    };
+
+      const queryParams = new URLSearchParams({
+        city,
+        ...(country && { country }),
+        sortBy: appliedSortBy,
+        limit: 100,
+      });
+    
+      if (appliedFilters.minRating > 0) {
+        queryParams.set("minRating", appliedFilters.minRating);
+      }
+    
+      if (appliedFilters.maxPrice < 500000) {
+        queryParams.set("maxPrice", appliedFilters.maxPrice);
+      }
+
+      const response = await fetch(
+        `${API_BASE}/hotels/advanced-search?${queryParams.toString()}`
+      );
+
+      if (!response.ok)
+        throw new Error(`Advanced search failed: ${response.status}`);
+
+      const data = await response.json();
+
+      const hotelsData =
+        data.success && Array.isArray(data.data) ? data.data : [];
+
+      setHotels(hotelsData);
+    } catch (err) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    appliedFilters.minRating,
+    appliedFilters.maxPrice,
+    appliedSortBy,
+    initialLoadComplete,
+    searchParams,
+  ]);
+
+  useEffect(() => {
     performAdvancedSearch();
-  }, [appliedFilters.minRating, appliedFilters.maxPrice, appliedSortBy, initialLoadComplete, searchParams]);
+  }, [performAdvancedSearch]);
 
   const handleFilterChange = (field, value) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
@@ -133,10 +155,10 @@ const HotelSearch = () => {
 
   const handleBookNow = (hotel) => {
     const checkIn = searchParams.get("checkIn") || "";
-    const checkOut = searchParams.get("checkout") || searchParams.get("checkOut") || "";
+    const checkOut = searchParams.get("checkOut") || "";
     const adults = searchParams.get("adults") || "2";
-    const rooms = searchParams.get("rooms") || "1";
-    sessionStorage.setItem("selectedHotel", JSON.stringify(hotel));
+    const rooms = searchParams.get("rooms") || "1";    sessionStorage.setItem("selectedHotel", JSON.stringify(hotel));
+
     const bookingParams = new URLSearchParams({
       hotelId: hotel._id || hotel.id || "",
       checkIn,
@@ -145,6 +167,17 @@ const HotelSearch = () => {
       rooms,
     });
     navigate(`/hotel-booking?${bookingParams.toString()}`);
+  };
+
+  const formatPrice = (hotel) => {
+    if (hotel.pricePerNightNGN) {
+      return `₦${hotel.pricePerNightNGN.toLocaleString("en-NG")}`;
+    }
+    // Fallback: if NGN conversion somehow missing, show USD
+    if (hotel.pricePerNight) {
+      return `$${hotel.pricePerNight.toFixed(2)}`;
+    }
+    return "Price unavailable";
   };
 
   return (
@@ -160,9 +193,10 @@ const HotelSearch = () => {
                 {appliedFilters.minRating > 0 && (
                   <span className="ml-2 text-blue-600">• Min rating: {appliedFilters.minRating}</span>
                 )}
-                {appliedFilters.maxPrice < 500000 && (
-                  <span className="ml-2 text-blue-600">• Max price: ${appliedFilters.maxPrice}</span>
-                )}
+              {appliedFilters.maxPrice < 500000 && (
+                  <span className="ml-2 text-blue-600">
+                    • Max price: ₦{appliedFilters.maxPrice.toLocaleString("en-NG")}
+                  </span> )}
               </p>
             </div>
 
@@ -258,12 +292,12 @@ const HotelSearch = () => {
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>0</span><span>5.0</span>
+                      <span>Any</span><span>10.0</span>
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Price: ₦{filters.maxPrice.toLocaleString()}/night
+                      Max Price: ₦{filters.maxPrice.toLocaleString("en-NG")}/night
                     </label>
                     <input
                       type="range" min="10000" max="500000" step="5000"
@@ -373,26 +407,21 @@ const HotelSearch = () => {
                             <div className="flex items-center gap-1.5 text-gray-500 mb-3">
                               <MapPin className="w-3.5 h-3.5 shrink-0" />
                               <span className="text-sm truncate">
-                                {hotel.location?.city || hotel.city}, {hotel.location?.country || hotel.country}
+                                {hotel.location?.city}, {" "}{hotel.location?.country }
                               </span>
                             </div>
 
                             {(hotel.hotelDescription || hotel.description) && (
-                              <p
-                                className="text-gray-600 text-sm line-clamp-2"
-                                dangerouslySetInnerHTML={{
-                                  __html: (hotel.hotelDescription || hotel.description)
-                                    .replace(/<[^>]*>/g, " ")
-                                    .substring(0, 160) + "...",
-                                }}
-                              />
+                              <p className="text-gray-600 text-sm line-clamp-2">
+                                {stripHtml(
+                                  hotel.hotelDescription || hotel.description
+                                ).substring(0, 160)}
+                                ...
+                              </p>
                             )}
                           </div>
 
                           <div className="flex items-center gap-2 mt-3 flex-wrap">
-                            <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                              Free Cancellation
-                            </span>
                             <span className="px-2.5 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
                               Best Price
                             </span>
@@ -409,8 +438,13 @@ const HotelSearch = () => {
                           <div>
                             <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Per night</p>
                             <p className="text-3xl font-bold text-gray-900 leading-none">
-                                ₦{hotel.pricePerNight?.toLocaleString()}
+                              {formatPrice(hotel)}
                             </p>
+                            {hotel.pricePerNightNGN && hotel.pricePerNight && (
+                              <p className="text-xs text-gray-400 mt-1">
+                                ≈ ${hotel.pricePerNight.toFixed(2)} USD
+                              </p>
+                            )}
                             <p className="text-xs text-gray-400 mt-1">+taxes & fees</p>
                           </div>
                           <button

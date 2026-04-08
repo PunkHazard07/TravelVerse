@@ -10,8 +10,7 @@ const HotelHero = () => {
     checkOut: "",
     adults: 2,
     rooms: 1,
-    freeCancellation: false,
-    minStarRating: 4,
+    minRating: 0
   });
 
   const [showGuestDropdown, setShowGuestDropdown] = useState(false);
@@ -40,14 +39,13 @@ const HotelHero = () => {
 
     //build query parameters
     const searchParams = new URLSearchParams ({
-      city: city,
-      ...(country && {country: country}),
-      minRating: formData.minStarRating,
-      freeCancellation: formData.freeCancellation,
+      city,
+      ...(country && { country }),
       checkIn: formData.checkIn,
       checkOut: formData.checkOut,
       adults: formData.adults,
       rooms: formData.rooms,
+      ...(formData.minRating > 0 && { minRating: formData.minRating })
     });
 
     navigate(`/hotel-search?${searchParams.toString()}`);
@@ -126,15 +124,9 @@ const HotelHero = () => {
                 <input
                   type="date"
                   value={formData.checkIn}
-                  onChange={(e) => handleInputChange("checkIn", e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}                  onChange={(e) => handleInputChange("checkIn", e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400 cursor-pointer"
-                  style={{
-                    // Hide native date picker icon for different browsers
-                    WebkitAppearance: "none",
-                    MozAppearance: "textfield",
-                  }}
                 />
-
               </div>
             </div>
 
@@ -148,14 +140,11 @@ const HotelHero = () => {
                 <input
                   type="date"
                   value={formData.checkOut}
+                  min={formData.checkIn || new Date().toISOString().split("T")[0]}
                   onChange={(e) =>
                     handleInputChange("checkOut", e.target.value)
                   }
                   className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400 cursor-pointer"
-                  style={{
-                    WebkitAppearance: "none",
-                    MozAppearance: "textfield",
-                  }}
                 />
               </div>
             </div>
@@ -166,7 +155,10 @@ const HotelHero = () => {
                 Guests & Rooms
               </label>
               <button
-                onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                onClick={() => {
+                  setShowGuestDropdown(!showGuestDropdown);
+                  setShowStarDropdown(false);
+                }}
                 className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all group"
               >
                 <div className="flex items-center gap-2">
@@ -246,52 +238,23 @@ const HotelHero = () => {
           {/* Filters and Search Button */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-gray-200">
             <div className="flex flex-wrap items-center gap-4">
-              {/* Free Cancellation Checkbox */}
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={formData.freeCancellation}
-                    onChange={(e) =>
-                      handleInputChange("freeCancellation", e.target.checked)
-                    }
-                    className="w-5 h-5 appearance-none bg-white border-2 border-gray-300 rounded checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer"
-                  />
-                  {formData.freeCancellation && (
-                    <svg
-                      className="absolute inset-0 w-5 h-5 text-white pointer-events-none"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </div>
-                <span className="text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
-                  Free cancellation
-                </span>
-              </label>
-
               {/* Star Rating Filter */}
               <div className="relative">
                 <button
-                  onClick={() => setShowStarDropdown(!showStarDropdown)}
+                  onClick={() => {
+                    setShowStarDropdown(!showStarDropdown);
+                    setShowGuestDropdown(false);
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium transition-all"
                 >
                   <Star
                     className="w-5 h-5 text-yellow-400"
-                    fill={formData.minStarRating > 0 ? "currentColor" : "none"}
+                    fill={formData.minRating > 0 ? "currentColor" : "none"}
                   />
                   <span>
-                    {formData.minStarRating > 0
-                      ? `${formData.minStarRating}+ stars`
-                      : "4 stars +"}
+                    {formData.minRating > 0
+                      ? `${formData.minRating}+ stars`
+                      : "Any rating"}
                   </span>
                   <svg
                     className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
@@ -316,11 +279,11 @@ const HotelHero = () => {
                       <button
                         key={stars}
                         onClick={() => {
-                          handleInputChange("minStarRating", stars);
+                          handleInputChange("minRating", stars);
                           setShowStarDropdown(false);
                         }}
                         className={`w-full text-left px-4 py-2 rounded transition-colors flex items-center gap-2 ${
-                          formData.minStarRating === stars
+                          formData.minRating === stars
                             ? "bg-blue-50 text-blue-600"
                             : "text-gray-700 hover:bg-gray-100"
                         }`}
