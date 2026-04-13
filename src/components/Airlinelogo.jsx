@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plane } from "lucide-react";
 
 const SIZES = {
@@ -7,11 +7,35 @@ const SIZES = {
   lg: { wrapper: "w-14 h-14", img: "w-11 h-11", icon: "w-6 h-6" },
 };
 
-const AirlineLogo = ({ carrierCode, size = "md", className = "" }) => {
-  const [failed, setFailed] = useState(false);
+const AirlineLogo = ({ carrierCode, logoSymbolUrl = null, logoLockupUrl = null, size = "md", className = "" }) => {
+  const [failedSymbol, setFailedSymbol] = useState(false);
+  const [failedLockup, setFailedLockup] = useState(false);
+  const [failedKiwi, setFailedKiwi] = useState(false);
+
+  useEffect(() => {
+    setFailedSymbol(false);
+    setFailedLockup(false);
+    setFailedKiwi(false);
+  }, [logoSymbolUrl, logoLockupUrl, carrierCode]);
+
   const s = SIZES[size] ?? SIZES.md;
 
-  const showFallback = !carrierCode || failed;
+  let src = null;
+  if (logoSymbolUrl && !failedSymbol) {
+    src = logoSymbolUrl;
+  } else if (logoLockupUrl && !failedLockup) {
+    src = logoLockupUrl;
+  } else if (carrierCode && !failedKiwi) {
+    src = `https://images.kiwi.com/airlines/64/${carrierCode.toUpperCase()}.png`;
+  }
+
+  const handleError = () => {
+    if (!failedSymbol && logoSymbolUrl && src === logoSymbolUrl)  { setFailedSymbol(true);  return; }
+    if (!failedLockup && logoLockupUrl && src === logoLockupUrl)  { setFailedLockup(true);  return; }
+    //kiwi failed 
+    setFailedKiwi(true);
+  };
+  const showFallback = !src;
 
   return (
     <div
@@ -21,10 +45,10 @@ const AirlineLogo = ({ carrierCode, size = "md", className = "" }) => {
         <Plane className={`${s.icon} text-blue-600`} />
       ) : (
         <img
-          src={`https://images.kiwi.com/airlines/64/${carrierCode.toUpperCase()}.png`}
-          alt={`${carrierCode} logo`}
+          src={src}
+          alt={`${carrierCode ?? "airline"} logo`}
           className={`${s.img} object-contain`}
-          onError={() => setFailed(true)}
+          onError={handleError}
         />
       )}
     </div>

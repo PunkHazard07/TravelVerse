@@ -18,8 +18,9 @@ import {
 } from "lucide-react";
 import BookingSteps from "../components/BookingSteps";
 import FlightSummaryCard from "../components/FlightSummaryCard";
+import SeatSelector from "../components/SeatSelector";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 const Section = ({ id, openSections, toggle, title, icon, children }) => {
     const isOpen = openSections.has(id);
@@ -72,7 +73,7 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
     </div>
   );
 
-const FlightBooking = () => {
+  const FlightBooking = () => {
   const navigate = useNavigate();
   const [openSections, setOpenSections] = useState(new Set(["passengers", "contact", "extras"]));
   const [bookingData, setBookingData] = useState(null);
@@ -83,14 +84,10 @@ const FlightBooking = () => {
   ]);
   const [contact, setContact] = useState({ email: "", phone: "" });
   const [extras, setExtras] = useState({
-    extraBaggage: false,
-    seatSelection: false,
+    extraBaggage: false
   });
 
-  const extraCosts = {
-    extraBaggage: 45,
-    seatSelection: 15,
-  };
+  const extraCosts = { extraBaggage: 45 };
 
   useEffect(() => {
     const stored = sessionStorage.getItem("flightBookingData");
@@ -140,8 +137,6 @@ const FlightBooking = () => {
   };
 
   const redirectToLogin = () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
     sessionStorage.setItem("returnTo", "/flight-booking");
     navigate("/login");
   };
@@ -149,11 +144,7 @@ const FlightBooking = () => {
   const handleConfirmAndPay = async () => {
     
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (!token) {
-        sessionStorage.setItem("returnTo", "/flight-booking");
-        navigate("/login");
-        return;
-      }
+      if (!token) { redirectToLogin();  return; }
 
     //validate form
     const validateError = validate();
@@ -169,19 +160,20 @@ const FlightBooking = () => {
       const { outbound, returnFlight } = bookingData;
       const raw = outbound.rawOffer;
 
+      const returnItineraries = returnFlight?.rawOffer?.itineraries ?? [];
+      const combinedItineraries = [...raw.itineraries, ...returnItineraries];
+
       const flightOffer = {
         offerId: raw.offerId,
-        source: raw.source || "amadeus",
-        validatingAirlineCodes: raw.validatingAirlineCodes || [],
-        itineraries: returnFlight
-          ? [...raw.itineraries, ...returnFlight.rawOffer.itineraries]
-          : raw.itineraries,
+        source: raw.source ?? "duffel",
+        validatingAirlineCodes: raw.validatingAirlineCodes ?? [],
+        itineraries: combinedItineraries,
         price: {
           currency: raw.price.currency,
           total: bookingData.totalPrice.toString(),
-          base: raw.price.base || bookingData.totalPrice.toString(),
+          base: (raw.price.base ?? bookingData.totalPrice).toString(),
         },
-        numberOfBookableSeats: raw.numberOfBookableSeats,
+        numberOfBookableSeats: raw.numberOfBookableSeats ?? null,
       };
 
       const extrasTotal = Object.entries(extras)
@@ -214,7 +206,6 @@ const FlightBooking = () => {
       }
 
       const bookingJson = await bookingRes.json();
-
       if (!bookingRes.ok || !bookingJson.success) {
         throw new Error(bookingJson.message || "Booking failed. Please try again.");
       }
@@ -408,41 +399,43 @@ const FlightBooking = () => {
               </div>
             </Section>
 
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="font-semibold text-gray-900 mb-4">Seat Selection</h3>
+              <SeatSelector />
+            </div>
+
             <Section
               id="extras"
               openSections={openSections}
               toggle={toggle}
-              title="Seat & Extras"
+              title="Add-ons"
               icon={<Luggage className="w-4 h-4 text-blue-600" />}
             >
               <div className="pt-5 space-y-3">
-                {[
-                  { key: "extraBaggage", label: "Extra Baggage (23kg)", desc: "Add an additional checked bag", price: extraCosts.extraBaggage },
-                  { key: "seatSelection", label: "Seat Selection", desc: "Choose your preferred seat", price: extraCosts.seatSelection },
-                ].map((extra) => (
-                  <label
-                    key={extra.key}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={extras[extra.key]}
-                        onChange={(e) =>
-                          setExtras((prev) => ({ ...prev, [extra.key]: e.target.checked }))
-                        }
-                        className="w-4 h-4 text-blue-600 rounded"
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{extra.label}</p>
-                        <p className="text-xs text-gray-500">{extra.desc}</p>
-                      </div>
+                <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={extras.extraBaggage}
+                      onChange={(e) =>
+                        setExtras((prev) => ({
+                          ...prev,
+                          extraBaggage: e.target.checked,
+                        }))
+                      }
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        Extra Baggage (23 kg)
+                      </p>
+                      <p className="text-xs text-gray-500">Add an additional checked bag</p>
                     </div>
-                    <span className="text-sm font-semibold text-blue-600">
-                      + {currency} {extra.price.toFixed(2)}
-                    </span>
-                  </label>
-                ))}
+                  </div>
+                  <span className="text-sm font-semibold text-blue-600">
+                    + {currency} {extraCosts.extraBaggage.toFixed(2)}
+                  </span>
+                </label>
               </div>
             </Section>
           </div>
@@ -462,33 +455,28 @@ const FlightBooking = () => {
               />
             )}
 
+            {/* Price Summary */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h3 className="font-semibold text-gray-900 mb-4">Price Summary</h3>
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-gray-600">
-                  <span>Outbound ({passengers.length} {passengers.length === 1 ? "adult" : "adults"})</span>
+                  <span>Outbound ({passengers.length}{" "} {passengers.length === 1 ? "passenger": "passengers"})</span>
                   <span>{currency} {outbound.price.toFixed(2)}</span>
                 </div>
                 {returnFlight && (
                   <div className="flex justify-between text-gray-600">
-                    <span>Return ({passengers.length} {passengers.length === 1 ? "adult" : "adults"})</span>
+                    <span>Return ({passengers.length} {passengers.length === 1 ? "passenger" : "passengers"})</span>
                     <span>{currency} {returnFlight.price.toFixed(2)}</span>
                   </div>
                 )}
-                {Object.entries(extras)
-                  .filter(([, on]) => on)
-                  .map(([key]) => {
-                    const labels = {
-                      extraBaggage: "Extra Baggage",
-                      seatSelection: "Seat Selection",
-                    };
-                    return (
-                      <div key={key} className="flex justify-between text-gray-600">
-                        <span>{labels[key]}</span>
-                        <span>{currency} {extraCosts[key].toFixed(2)}</span>
-                      </div>
-                    );
-                  })}
+                {extras.extraBaggage && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Extra Baggage</span>
+                    <span>
+                      {currency} {extraCosts.extraBaggage.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="h-px bg-gray-100 my-2" />
                 <div className="flex justify-between font-bold text-gray-900 text-base">
                   <span>Total</span>

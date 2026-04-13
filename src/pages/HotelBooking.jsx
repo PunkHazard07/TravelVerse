@@ -6,7 +6,7 @@ import {
   Calendar, Users, Moon, Sparkles, ArrowRight, BadgeCheck, Loader2, AlertCircle
 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 const HotelBooking = () => {
 const [searchParams] = useSearchParams();

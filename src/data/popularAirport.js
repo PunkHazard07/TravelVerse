@@ -1,98 +1,98 @@
 export const POPULAR_AFRICAN_AIRPORTS = [
   // Nigeria
-  { iataCode: 'LOS', name: 'Murtala Muhammed International Airport', cityName: 'Lagos', countryName: 'Nigeria' },
-  { iataCode: 'ABV', name: 'Nnamdi Azikiwe International Airport', cityName: 'Abuja', countryName: 'Nigeria' },
-  { iataCode: 'KAN', name: 'Mallam Aminu Kano International Airport', cityName: 'Kano', countryName: 'Nigeria' },
-  { iataCode: 'PHC', name: 'Port Harcourt International Airport', cityName: 'Port Harcourt', countryName: 'Nigeria' },
+  { iataCode: 'LOS', name: 'Murtala Muhammed International Airport', cityName: 'Lagos', countryName: 'Nigeria', countryCode: 'NG' },
+  { iataCode: 'ABV', name: 'Nnamdi Azikiwe International Airport', cityName: 'Abuja', countryName: 'Nigeria', countryCode: 'NG' },
+  { iataCode: 'KAN', name: 'Mallam Aminu Kano International Airport', cityName: 'Kano', countryName: 'Nigeria', countryCode: 'NG' },
+  { iataCode: 'PHC', name: 'Port Harcourt International Airport', cityName: 'Port Harcourt', countryName: 'Nigeria', countryCode: 'NG' },
   
   // Ghana
-  { iataCode: 'ACC', name: 'Kotoka International Airport', cityName: 'Accra', countryName: 'Ghana' },
+  { iataCode: 'ACC', name: 'Kotoka International Airport', cityName: 'Accra', countryName: 'Ghana', countryCode: 'GH' },
   
   // Kenya
-  { iataCode: 'NBO', name: 'Jomo Kenyatta International Airport', cityName: 'Nairobi', countryName: 'Kenya' },
-  { iataCode: 'MBA', name: 'Moi International Airport', cityName: 'Mombasa', countryName: 'Kenya' },
+  { iataCode: 'NBO', name: 'Jomo Kenyatta International Airport', cityName: 'Nairobi', countryName: 'Kenya', countryCode: 'KE' },
+  { iataCode: 'MBA', name: 'Moi International Airport', cityName: 'Mombasa', countryName: 'Kenya', countryCode: 'KE' },
   
   // South Africa
-  { iataCode: 'JNB', name: 'O.R. Tambo International Airport', cityName: 'Johannesburg', countryName: 'South Africa' },
-  { iataCode: 'CPT', name: 'Cape Town International Airport', cityName: 'Cape Town', countryName: 'South Africa' },
-  { iataCode: 'DUR', name: 'King Shaka International Airport', cityName: 'Durban', countryName: 'South Africa' },
+  { iataCode: 'JNB', name: 'O.R. Tambo International Airport', cityName: 'Johannesburg', countryName: 'South Africa', countryCode: 'ZA' },
+  { iataCode: 'CPT', name: 'Cape Town International Airport', cityName: 'Cape Town', countryName: 'South Africa', countryCode: 'ZA' },
+  { iataCode: 'DUR', name: 'King Shaka International Airport', cityName: 'Durban', countryName: 'South Africa', countryCode: 'ZA' },
   
   // Egypt
-  { iataCode: 'CAI', name: 'Cairo International Airport', cityName: 'Cairo', countryName: 'Egypt' },
-  { iataCode: 'HRG', name: 'Hurghada International Airport', cityName: 'Hurghada', countryName: 'Egypt' },
-  { iataCode: 'SSH', name: 'Sharm El Sheikh International Airport', cityName: 'Sharm El Sheikh', countryName: 'Egypt' },
+  { iataCode: 'CAI', name: 'Cairo International Airport', cityName: 'Cairo', countryName: 'Egypt', countryCode: 'EG' },
+  { iataCode: 'HRG', name: 'Hurghada International Airport', cityName: 'Hurghada', countryName: 'Egypt', countryCode: 'EG' },
+  { iataCode: 'SSH', name: 'Sharm El Sheikh International Airport', cityName: 'Sharm El Sheikh', countryName: 'Egypt', countryCode: 'EG' },
   
   // Morocco
-  { iataCode: 'CMN', name: 'Mohammed V International Airport', cityName: 'Casablanca', countryName: 'Morocco' },
-  { iataCode: 'RAK', name: 'Marrakech Menara Airport', cityName: 'Marrakech', countryName: 'Morocco' },
+  { iataCode: 'CMN', name: 'Mohammed V International Airport', cityName: 'Casablanca', countryName: 'Morocco', countryCode: 'MA' },
+  { iataCode: 'RAK', name: 'Marrakech Menara Airport', cityName: 'Marrakech', countryName: 'Morocco', countryCode: 'MA' },
   
   // Ethiopia
-  { iataCode: 'ADD', name: 'Addis Ababa Bole International Airport', cityName: 'Addis Ababa', countryName: 'Ethiopia' },
+  { iataCode: 'ADD', name: 'Addis Ababa Bole International Airport', cityName: 'Addis Ababa', countryName: 'Ethiopia', countryCode: 'ET' },
   
   // Tanzania
-  { iataCode: 'DAR', name: 'Julius Nyerere International Airport', cityName: 'Dar es Salaam', countryName: 'Tanzania' },
-  { iataCode: 'ZNZ', name: 'Abeid Amani Karume International Airport', cityName: 'Zanzibar', countryName: 'Tanzania' },
+  { iataCode: 'DAR', name: 'Julius Nyerere International Airport', cityName: 'Dar es Salaam', countryName: 'Tanzania', countryCode: 'TZ' },
+  { iataCode: 'ZNZ', name: 'Abeid Amani Karume International Airport', cityName: 'Zanzibar', countryName: 'Tanzania', countryCode: 'TZ' },
   
   // Uganda
-  { iataCode: 'EBB', name: 'Entebbe International Airport', cityName: 'Entebbe', countryName: 'Uganda' },
+  { iataCode: 'EBB', name: 'Entebbe International Airport', cityName: 'Entebbe', countryName: 'Uganda', countryCode: 'UG' },
   
   // Senegal
-  { iataCode: 'DSS', name: 'Blaise Diagne International Airport', cityName: 'Dakar', countryName: 'Senegal' },
+  { iataCode: 'DSS', name: 'Blaise Diagne International Airport', cityName: 'Dakar', countryName: 'Senegal', countryCode: 'SN' },
   
   // Ivory Coast
-  { iataCode: 'ABJ', name: 'Félix Houphouët-Boigny International Airport', cityName: 'Abidjan', countryName: 'Ivory Coast' },
+  { iataCode: 'ABJ', name: 'Félix Houphouët-Boigny International Airport', cityName: 'Abidjan', countryName: 'Ivory Coast', countryCode: 'CI' },
   
   // Algeria
-  { iataCode: 'ALG', name: 'Houari Boumediene Airport', cityName: 'Algiers', countryName: 'Algeria' },
+  { iataCode: 'ALG', name: 'Houari Boumediene Airport', cityName: 'Algiers', countryName: 'Algeria', countryCode: 'DZ' },
   
   // Tunisia
-  { iataCode: 'TUN', name: 'Tunis-Carthage International Airport', cityName: 'Tunis', countryName: 'Tunisia' },
+  { iataCode: 'TUN', name: 'Tunis-Carthage International Airport', cityName: 'Tunis', countryName: 'Tunisia', countryCode: 'TN' },
   
   // Rwanda
-  { iataCode: 'KGL', name: 'Kigali International Airport', cityName: 'Kigali', countryName: 'Rwanda' },
+  { iataCode: 'KGL', name: 'Kigali International Airport', cityName: 'Kigali', countryName: 'Rwanda', countryCode: 'RW' },
   
   // Botswana
-  { iataCode: 'GBE', name: 'Sir Seretse Khama International Airport', cityName: 'Gaborone', countryName: 'Botswana' },
+  { iataCode: 'GBE', name: 'Sir Seretse Khama International Airport', cityName: 'Gaborone', countryName: 'Botswana', countryCode: 'BW' },
   
   // Zimbabwe
-  { iataCode: 'HRE', name: 'Robert Gabriel Mugabe International Airport', cityName: 'Harare', countryName: 'Zimbabwe' },
+  { iataCode: 'HRE', name: 'Robert Gabriel Mugabe International Airport', cityName: 'Harare', countryName: 'Zimbabwe', countryCode: 'ZW' },
 ];
 
 export const POPULAR_GLOBAL_AIRPORTS = [
   // UK
-  { iataCode: 'LHR', name: 'Heathrow Airport', cityName: 'London', countryName: 'United Kingdom' },
-  { iataCode: 'LGW', name: 'Gatwick Airport', cityName: 'London', countryName: 'United Kingdom' },
-  { iataCode: 'MAN', name: 'Manchester Airport', cityName: 'Manchester', countryName: 'United Kingdom' },
+  { iataCode: 'LHR', name: 'Heathrow Airport', cityName: 'London', countryName: 'United Kingdom', countryCode: 'GB' },
+  { iataCode: 'LGW', name: 'Gatwick Airport', cityName: 'London', countryName: 'United Kingdom', countryCode: 'GB' },
+  { iataCode: 'MAN', name: 'Manchester Airport', cityName: 'Manchester', countryName: 'United Kingdom', countryCode: 'GB' },
   
   // USA
-  { iataCode: 'JFK', name: 'John F. Kennedy International Airport', cityName: 'New York', countryName: 'United States' },
-  { iataCode: 'LAX', name: 'Los Angeles International Airport', cityName: 'Los Angeles', countryName: 'United States' },
-  { iataCode: 'ORD', name: 'O\'Hare International Airport', cityName: 'Chicago', countryName: 'United States' },
-  { iataCode: 'MIA', name: 'Miami International Airport', cityName: 'Miami', countryName: 'United States' },
-  { iataCode: 'ATL', name: 'Hartsfield-Jackson Atlanta International Airport', cityName: 'Atlanta', countryName: 'United States' },
+  { iataCode: 'JFK', name: 'John F. Kennedy International Airport', cityName: 'New York', countryName: 'United States', countryCode: 'US' },
+  { iataCode: 'LAX', name: 'Los Angeles International Airport', cityName: 'Los Angeles', countryName: 'United States', countryCode: 'US' },
+  { iataCode: 'ORD', name: 'O\'Hare International Airport', cityName: 'Chicago', countryName: 'United States', countryCode: 'US' },
+  { iataCode: 'MIA', name: 'Miami International Airport', cityName: 'Miami', countryName: 'United States', countryCode: 'US' },
+  { iataCode: 'ATL', name: 'Hartsfield-Jackson Atlanta International Airport', cityName: 'Atlanta', countryName: 'United States', countryCode: 'US' },
   
   // UAE
-  { iataCode: 'DXB', name: 'Dubai International Airport', cityName: 'Dubai', countryName: 'United Arab Emirates' },
-  { iataCode: 'AUH', name: 'Abu Dhabi International Airport', cityName: 'Abu Dhabi', countryName: 'United Arab Emirates' },
+  { iataCode: 'DXB', name: 'Dubai International Airport', cityName: 'Dubai', countryName: 'United Arab Emirates', countryCode: 'AE' },
+  { iataCode: 'AUH', name: 'Abu Dhabi International Airport', cityName: 'Abu Dhabi', countryName: 'United Arab Emirates', countryCode: 'AE' },
   
   // France
-  { iataCode: 'CDG', name: 'Charles de Gaulle Airport', cityName: 'Paris', countryName: 'France' },
+  { iataCode: 'CDG', name: 'Charles de Gaulle Airport', cityName: 'Paris', countryName: 'France', countryCode: 'FR' },
   
   // Germany
-  { iataCode: 'FRA', name: 'Frankfurt Airport', cityName: 'Frankfurt', countryName: 'Germany' },
+  { iataCode: 'FRA', name: 'Frankfurt Airport', cityName: 'Frankfurt', countryName: 'Germany', countryCode: 'DE' },
   
   // Netherlands
-  { iataCode: 'AMS', name: 'Amsterdam Airport Schiphol', cityName: 'Amsterdam', countryName: 'Netherlands' },
+  { iataCode: 'AMS', name: 'Amsterdam Airport Schiphol', cityName: 'Amsterdam', countryName: 'Netherlands', countryCode: 'NL' },
   
   // Turkey
-  { iataCode: 'IST', name: 'Istanbul Airport', cityName: 'Istanbul', countryName: 'Turkey' },
+  { iataCode: 'IST', name: 'Istanbul Airport', cityName: 'Istanbul', countryName: 'Turkey', countryCode: 'TR' },
   
   // Qatar
-  { iataCode: 'DOH', name: 'Hamad International Airport', cityName: 'Doha', countryName: 'Qatar' },
+  { iataCode: 'DOH', name: 'Hamad International Airport', cityName: 'Doha', countryName: 'Qatar', countryCode: 'QA' },
   
   // China
-  { iataCode: 'PEK', name: 'Beijing Capital International Airport', cityName: 'Beijing', countryName: 'China' },
-  { iataCode: 'PVG', name: 'Shanghai Pudong International Airport', cityName: 'Shanghai', countryName: 'China' },
+  { iataCode: 'PEK', name: 'Beijing Capital International Airport', cityName: 'Beijing', countryName: 'China', countryCode: 'CN' },
+  { iataCode: 'PVG', name: 'Shanghai Pudong International Airport', cityName: 'Shanghai', countryName: 'China', countryCode: 'CN' },
 ];
 
 // Combine all airports

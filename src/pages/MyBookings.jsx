@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { X } from "lucide-react";
 import DownloadTicketButton from "../components/Downloadticketbutton";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
 const LITE_API_KEY = import.meta.env.VITE_LITE_KEY;
 
 const TABS = ["All", "Confirmed", "Cancelled"];

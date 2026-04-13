@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
-const API_BASE =  import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 /**
  * Paystack redirects here after payment with ?reference=xxx&trxref=xxx

@@ -13,9 +13,9 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
-import AirportAutocomplete from "./AirportAutoComplete";
+import AirportAutocomplete from "./AirportAutocomplete";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
 
 const flightAPI = {
   searchFlights: async (params) => {
@@ -25,8 +25,10 @@ const flightAPI = {
       body: JSON.stringify(params),
     });
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to search flights");
+      const err = await response.json().catch(() => ({}));
+      throw new Error(
+        err.error?.message || err.message || "Failed to search flights"
+      );
     }
     return response.json();
   },
@@ -59,6 +61,13 @@ const CounterRow = ({ label, sublabel, value, onDecrement, onIncrement, min = 0 
   </div>
 );
 
+const CABIN_CLASSES = [
+  { label: "Economy",         value: "ECONOMY" },
+  { label: "Premium Economy", value: "PREMIUM_ECONOMY" },
+  { label: "Business",        value: "BUSINESS" },
+  { label: "First",           value: "FIRST" },
+];
+
 const TravellersDropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -67,19 +76,21 @@ const TravellersDropdown = ({ value, onChange }) => {
   const adultMatch = value.match(/(\d+)\s*Adult/i);
   const childMatch = value.match(/(\d+)\s*Child/i);
   const infantMatch = value.match(/(\d+)\s*Infant/i);
-  const classMatch = value.match(/(Economy|Business|First)/i);
+
+  //find the cabin value that matches the stored label
+  const storedCabin = CABIN_CLASSES.find((c) => value.toLowerCase().includes(c.label.toLowerCase()))
 
   const [adults, setAdults] = useState(adultMatch ? parseInt(adultMatch[1]) : 1);
   const [children, setChildren] = useState(childMatch ? parseInt(childMatch[1]) : 0);
   const [infants, setInfants] = useState(infantMatch ? parseInt(infantMatch[1]) : 0);
-  const [cabinClass, setCabinClass] = useState(classMatch ? classMatch[1] : "Economy");
+  const [cabinClass, setCabinClass] = useState(storedCabin ?? CABIN_CLASSES[0]);
 
   // Rebuild the string whenever any value changes — keeps parseTravellers() happy
   useEffect(() => {
     const parts = [`${adults} Adult${adults !== 1 ? "s" : ""}`];
     if (children > 0) parts.push(`${children} Child${children !== 1 ? "ren" : ""}`);
     if (infants > 0) parts.push(`${infants} Infant${infants !== 1 ? "s" : ""}`);
-    parts.push(cabinClass);
+    parts.push(cabinClass.label);
     onChange(parts.join(", "));
   }, [adults, children, infants, cabinClass]);
 
@@ -89,8 +100,6 @@ const TravellersDropdown = ({ value, onChange }) => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  const classes = ["Economy", "Business", "First"];
 
   return (
     <div className="relative" ref={ref}>
@@ -132,10 +141,10 @@ const TravellersDropdown = ({ value, onChange }) => {
           {/* Cabin class */}
           <div className="mt-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Cabin Class</p>
-            <div className="grid grid-cols-3 gap-2">
-              {classes.map((cls) => (
+            <div className="grid grid-cols-2 gap-2">
+              {CABIN_CLASSES.map((cls) => (
                 <button
-                  key={cls}
+                  key={cls.value}
                   type="button"
                   onClick={() => setCabinClass(cls)}
                   className={`py-2 rounded-lg text-sm font-medium border transition-all ${
@@ -144,7 +153,7 @@ const TravellersDropdown = ({ value, onChange }) => {
                       : "bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600"
                   }`}
                 >
-                  {cls}
+                  {cls.label}
                 </button>
               ))}
             </div>
@@ -180,6 +189,23 @@ const DateInput = ({ name, value, onChange, min, placeholder }) => (
   </div>
 );
 
+//parse the traveller summary string back into structred data for the Api
+const parseTravellers = (str) => {
+  const adultMatch  = str.match(/(\d+)\s*Adult/i);
+  const childMatch  = str.match(/(\d+)\s*Child/i);
+  const infantMatch = str.match(/(\d+)\s*Infant/i);
+
+  //find the cabin entry by matching the label string
+  const cabin = CABIN_CLASSES.find((c) => str.toLowerCase().includes(c.label.toLowerCase()));
+
+  return {
+    adults:      adultMatch  ? parseInt(adultMatch[1])  : 1,
+    children:    childMatch  ? parseInt(childMatch[1])  : 0,
+    infants:     infantMatch ? parseInt(infantMatch[1]) : 0,
+    travelClass: cabin?.value ?? "ECONOMY"
+  }
+};
+
 const FlightHero = () => {
   const navigate = useNavigate();
   const [tripType, setTripType] = useState("return");
@@ -214,23 +240,16 @@ const FlightHero = () => {
   };
 
   const validateForm = () => {
-    if (!formData.dep_airport_code) throw new Error("Please select a departure airport from the dropdown");
-    if (!formData.arr_airport_code) throw new Error("Please select an arrival airport from the dropdown");
-    if (!formData.departure_date) throw new Error("Please select a departure date");
-    if (tripType === "return" && !formData.return_date) throw new Error("Please select a return date");
-  };
-
-  const parseTravellers = (travellersString) => {
-    const adultMatch = travellersString.match(/(\d+)\s*Adult/i);
-    const childMatch = travellersString.match(/(\d+)\s*Child/i);
-    const infantMatch = travellersString.match(/(\d+)\s*Infant/i);
-    const classMatch = travellersString.match(/(Economy|Business|First)/i);
-    return {
-      adults: adultMatch ? parseInt(adultMatch[1]) : 1,
-      children: childMatch ? parseInt(childMatch[1]) : 0,
-      infants: infantMatch ? parseInt(infantMatch[1]) : 0,
-      travelClass: classMatch ? classMatch[1].toUpperCase() : "ECONOMY",
-    };
+    if (!formData.dep_airport_code)
+      throw new Error("Please select a departure airport from the dropdown");
+    if (!formData.arr_airport_code)
+      throw new Error("Please select an arrival airport from the dropdown");
+    if (!formData.departure_date)
+      throw new Error("Please select a departure date");
+    if (tripType === "return" && !formData.return_date)
+      throw new Error("Please select a return date for a round trip");
+    if (formData.dep_airport_code === formData.arr_airport_code)
+      throw new Error("Origin and destination cannot be the same airport");
   };
 
   const handleSearch = async () => {
@@ -239,6 +258,7 @@ const FlightHero = () => {
     try {
       validateForm();
       const { adults, children, infants, travelClass } = parseTravellers(formData.travellers);
+      
       const searchParams = {
         originLocationCode: formData.dep_airport_code,
         destinationLocationCode: formData.arr_airport_code,
@@ -249,9 +269,11 @@ const FlightHero = () => {
         travelClass,
         max: 50,
         nonStop: showDirectFlights,
-        ...(formData.airline.trim() && { airline: formData.airline.trim() }),
+        ...(tripType === "return" && formData.return_date
+          ? { returnDate: formData.return_date }
+          : {}),
+        ...(formData.airline.trim() ? { airline: formData.airline.trim() } : {}),
       };
-      if (tripType === "return" && formData.return_date) searchParams.returnDate = formData.return_date;
 
       const results = await flightAPI.searchFlights(searchParams);
       const searchData = {
@@ -277,7 +299,7 @@ const FlightHero = () => {
   };
 
   return (
-    <div className="relative overflow-hidden bg-linear-to-b from-blue-900 to-blue-800">
+    <div className="relative bg-linear-to-b from-blue-900 to-blue-800">
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -302,17 +324,20 @@ const FlightHero = () => {
         <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 lg:p-8 max-w-6xl mx-auto">
           {/* Trip Type */}
           <div className="flex flex-wrap gap-3 md:gap-4 mb-6">
-            {["return", "one-way", "multi-city"].map((type) => (
+            {[
+              { value: "return", label: "Round-trip" },
+              { value: "one-way", label: "One-way" }
+            ].map(({ value, label }) => (
               <button
-                key={type}
-                onClick={() => setTripType(type)}
+                key={value}
+                onClick={() => setTripType(value)}
                 className={`px-4 md:px-6 py-2 rounded-full font-medium transition-all text-sm md:text-base capitalize ${
-                  tripType === type
+                  tripType === value
                     ? "bg-blue-600 text-white shadow-lg"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {type.replace("-", " ")}
+                {label.replace("-", " ")}
               </button>
             ))}
           </div>
@@ -328,30 +353,28 @@ const FlightHero = () => {
                 <div className="flex-1">
                   <AirportAutocomplete
                     value={formData.dep_airport}
-                    onChange={(displayValue, iataCode) =>
-                      setFormData((prev) => ({ ...prev, dep_airport: displayValue, dep_airport_code: iataCode }))
+                    onChange={(display, code) =>
+                      setFormData((prev) => ({ ...prev, dep_airport: display, dep_airport_code: code }))
                     }
-                    placeholder="e.g., Lagos, London, New York"
+                    placeholder="e.g., Lagos, London"
                     icon={Plane}
                   />
                 </div>
                 <button
-                  onClick={handleSwapAirports}
                   type="button"
+                  onClick={handleSwapAirports}
                   aria-label="Swap airports"
-                  className="shrink-0"
+                  className="shrink-0 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-md bg-gray-100 hover:bg-gray-200 border border-gray-300 transition-colors"
                 >
-                  <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-md bg-gray-100 hover:bg-gray-200 border border-gray-300 transition-colors">
-                    <ArrowLeftRight className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
-                  </div>
+                  <ArrowLeftRight className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
                 </button>
                 <div className="flex-1">
                   <AirportAutocomplete
                     value={formData.arr_airport}
-                    onChange={(displayValue, iataCode) =>
-                      setFormData((prev) => ({ ...prev, arr_airport: displayValue, arr_airport_code: iataCode }))
+                    onChange={(display, code) =>
+                      setFormData((prev) => ({ ...prev, arr_airport: display, arr_airport_code: code }))
                     }
-                    placeholder="e.g., Paris, Dubai, Tokyo"
+                    placeholder="e.g., Paris, Dubai"
                     icon={Plane}
                   />
                 </div>
@@ -394,13 +417,13 @@ const FlightHero = () => {
               <div className="relative">
                 <TravellersDropdown
                   value={formData.travellers}
-                  onChange={(val) => setFormData((prev) => ({ ...prev, travellers: val }))}
+                  onChange={(val) => setFormData((p) => ({ ...p, travellers: val }))}
                 />
               </div>
             </div>
           </div>
 
-          {/* Options */}
+          {/* Options row */}
           <div className="flex flex-wrap gap-3 md:gap-4 mb-5 md:mb-6">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -418,20 +441,7 @@ const FlightHero = () => {
             <summary className="text-xs md:text-sm font-medium text-blue-600 cursor-pointer hover:text-blue-700 mb-3">
               Advanced Search Options
             </summary>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-3 md:mt-4">
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
-                  Flight Number (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="flight_number"
-                  value={formData.flight_number}
-                  onChange={handleInputChange}
-                  placeholder="e.g., AA123"
-                  className="w-full px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+            <div className="mt-3 md:mt-4 max-w-sm">
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                   Airline (Optional)
@@ -470,12 +480,12 @@ const FlightHero = () => {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
-                Searching...
+                Searching flights...
               </>
             ) : (
               <>
                 <Search className="w-5 h-5 md:w-6 md:h-6" />
-                Search
+                Search Flights
               </>
             )}
           </button>

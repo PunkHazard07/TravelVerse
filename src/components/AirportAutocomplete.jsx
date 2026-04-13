@@ -2,7 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { Plane, Loader2 } from "lucide-react";
 import { searchFallbackAirports } from "../data/popularAirport";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BASE_URL;
+
+const normalizeDuffelPlace =(place) => ({
+  iataCode: place.iata_code,
+  name: place.name,
+  cityName: place.city_name || place.name,
+  countryCode: place.iata_country_code ?? "",
+  source: "duffel",})
 
 const AirportAutocomplete = ({
   value,
@@ -10,7 +17,7 @@ const AirportAutocomplete = ({
   placeholder = "City or airport",
   icon: Icon = Plane,
 }) => {
-  const [searchTerm, setSearchTerm] = useState(value);
+  const [searchTerm, setSearchTerm] = useState(value || "");
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -19,39 +26,35 @@ const AirportAutocomplete = ({
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handler = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
-    if (isSelected) {
-      return;
-    }
-
+    if (isSelected) return;
     if (searchTerm.match(/\([A-Z]{3}\)$/)) return;
-
     if (searchTerm.length < 2) {
       setSuggestions([]);
       setShowDropdown(false);
       return;
     }
 
-    const debounceTimer = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       const localResults = searchFallbackAirports(searchTerm);
 
       if (localResults.length > 0) {
         setSuggestions(
-          localResults.map((airport) => ({
-            iataCode: airport.iataCode,
-            name: airport.name,
-            cityName: airport.cityName,
-            countryName: airport.countryName,
+          localResults.map((a) => ({
+            iataCode: a.iataCode,
+            name: a.name,
+            cityName: a.cityName,
+            countryCode: a.countryCode,
             source: "local",
           }))
         );
@@ -72,21 +75,12 @@ const AirportAutocomplete = ({
 
           if (data.success && data.data?.length > 0) {
             const seen = new Set();
-            const amadeusResults = data.data
-              .filter((a) => a.iataCode && !seen.has(a.iataCode))
-              .map((a) => {
-                seen.add(a.iataCode);
-                return {
-                  iataCode: a.iataCode,
-                  name: a.name,
-                  cityName: a.address?.cityName || a.name,
-                  countryName: a.address?.countryName || "",
-                  source: "amadeus",
-                };
-              });
+            const results = data.data
+            .filter((p) => p.iata_code && !seen.has(p.iata_code) && seen.add(p.iata_code))
+            .map(normalizeDuffelPlace);
 
-            setSuggestions(amadeusResults);
-            setShowDropdown(amadeusResults.length > 0);
+            setSuggestions(results);
+            setShowDropdown(results.length > 0);
           } else {
             setSuggestions([]);
             setShowDropdown(true); // show "no results" message
@@ -97,30 +91,25 @@ const AirportAutocomplete = ({
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 400);
 
-  return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+  return () => clearTimeout(timer);
+  }, [searchTerm, isSelected]);
 
   const handleSelect = (airport) => {
-    const displayValue = `${airport.cityName} (${airport.iataCode})`;
+    const display = `${airport.cityName} (${airport.iataCode})`;
 
     setIsSelected(true);
-    setSearchTerm(displayValue);
-    onChange(displayValue, airport.iataCode); // Pass both display value and code
-    setShowDropdown(false);
+    setSearchTerm(display);
     setSuggestions([]);
+    setShowDropdown(false);
+    onChange(display, airport.iataCode); // Pass both display value and code
   };
 
    //handle manual input change
-  const handleInputChange = (e) => {
-    const newValue = e.target.value;
+    const handleInputChange = (e) => {
     setIsSelected(false);
-    setSearchTerm(newValue);
-
-    if (isSelected && newValue !== searchTerm) {
-      setIsSelected(false);
-  }
+    setSearchTerm(e.target.value);
   };
 
   const isAlreadyResolved = searchTerm.match(/\([A-Z]{3}\)$/);
@@ -146,9 +135,9 @@ const AirportAutocomplete = ({
       {/* Suggestions dropdown */}
       {showDropdown && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
-          {suggestions.map((airport, index) => (
+          {suggestions.map((airport, idx) => (
             <button
-              key={`${airport.iataCode}-${index}`}
+              key={`${airport.iataCode}-${idx}`}
               type="button"
               onClick={() => handleSelect(airport)}
               className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-start gap-3 border-b border-gray-100 last:border-b-0"
@@ -161,8 +150,8 @@ const AirportAutocomplete = ({
                   <span className="font-semibold text-gray-900 text-base">
                     {airport.cityName}
                   </span>
-                  {airport.countryName && (
-                    <span className="text-xs text-gray-500">{airport.countryName}</span>
+                  {airport.countryCode && (
+                    <span className="text-xs text-gray-500">{airport.countryCode}</span>
                   )}
                 </div>
                 <p className="text-sm text-gray-600 truncate mt-0.5">{airport.name}</p>
