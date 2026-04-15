@@ -198,10 +198,18 @@ const parseTravellers = (str) => {
   //find the cabin entry by matching the label string
   const cabin = CABIN_CLASSES.find((c) => str.toLowerCase().includes(c.label.toLowerCase()));
 
+    const childrenCount = childMatch ? parseInt(childMatch[1]) : 0;
+    const infantsCount = infantMatch ? parseInt(infantMatch[1]) : 0;
+
+    const childrenAges = Array(childrenCount).fill(10); // Default age 10 for children
+    const infantAges = Array(infantsCount).fill(1);    // Default age 1 for infants
+
   return {
-    adults:      adultMatch  ? parseInt(adultMatch[1])  : 1,
-    children:    childMatch  ? parseInt(childMatch[1])  : 0,
-    infants:     infantMatch ? parseInt(infantMatch[1]) : 0,
+    adults: adultMatch ? parseInt(adultMatch[1]) : 1,
+    children: childrenCount,
+    infants: infantsCount,
+    childrenAges: childrenAges,
+    infantAges: infantAges,
     travelClass: cabin?.value ?? "ECONOMY"
   }
 };
@@ -257,7 +265,7 @@ const FlightHero = () => {
     setLoading(true);
     try {
       validateForm();
-      const { adults, children, infants, travelClass } = parseTravellers(formData.travellers);
+      const { adults, children, infants, childrenAges, infantAges, travelClass } = parseTravellers(formData.travellers);
       
       const searchParams = {
         originLocationCode: formData.dep_airport_code,
@@ -266,6 +274,8 @@ const FlightHero = () => {
         adults,
         children,
         infants,
+        childrenAges,
+        infantAges,
         travelClass,
         max: 50,
         nonStop: showDirectFlights,
