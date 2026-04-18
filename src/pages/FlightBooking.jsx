@@ -86,18 +86,22 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
   const [extras, setExtras] = useState({
     extraBaggage: false
   });
+  const [selectedSeatServices, setSelectedSeatServices] = useState([]);
 
   const extraCosts = { extraBaggage: 45 };
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("flightBookingData");
-    if (!stored) { navigate("/flight"); return; }
-    try {
-      setBookingData(JSON.parse(stored));
-    } catch {
-      navigate("/flight");
-    }
-  }, [navigate]);
+  const stored = sessionStorage.getItem("flightBookingData");
+  if (!stored) { navigate("/flight"); return; }
+  try {
+    const parsed = JSON.parse(stored);
+    console.log("outbound rawOffer:", parsed.outbound?.rawOffer);      // check this
+    console.log("offerId:", parsed.outbound?.rawOffer?.offerId);       // is it defined?
+    setBookingData(parsed);
+  } catch {
+    navigate("/flight");
+  }
+}, [navigate]);
 
   const toggle = (id) => {
     setOpenSections((prev) => {
@@ -182,7 +186,7 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
 
       const grandTotal = bookingData.totalPrice + extrasTotal;
 
-      const bookingRes = await fetch(`${API_BASE}/bookings/flight`, {
+      const bookingRes = await fetch(`${API_BASE}/flight`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -195,6 +199,10 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
             lastName: p.lastName,
             gender: p.gender,
             dateOfBirth: p.dob,
+          })),
+            selectedServices: selectedSeatServices.map((s) => ({
+              id: s.id,
+              quantity: 1,
           })),
           totalPrice: grandTotal,
         }),
@@ -212,7 +220,7 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
 
       const bookingId = bookingJson.data._id;
 
-      const payRes = await fetch(`${API_BASE}/bookings/initialize`, {
+      const payRes = await fetch(`${API_BASE}/initialize`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -253,8 +261,12 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
   const extrasTotal = Object.entries(extras)
     .filter(([, on]) => on)
     .reduce((sum, [key]) => sum + extraCosts[key], 0);
+  
+  const seatServicesTotal = selectedSeatServices.reduce(
+    (sum, s) => sum + (s.totalAmount || 0), 0 
+  );
 
-  const grandTotal = totalPrice + extrasTotal;
+  const grandTotal = totalPrice + extrasTotal + seatServicesTotal;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -399,10 +411,17 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
               </div>
             </Section>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="font-semibold text-gray-900 mb-4">Seat Selection</h3>
-              <SeatSelector />
-            </div>
+  <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <h3 className="font-semibold text-gray-900 mb-4">Seat Selection</h3>
+        <SeatSelector
+            offerId={outbound?.offerId || outbound?.rawOffer?.offerId}
+            passengers={passengers.map((p, i) => ({
+            ...p,
+            id: outbound?.rawOffer?.passengers?.[i]?.id,
+        }))}
+        onSeatsChange={setSelectedSeatServices}
+      />
+  </div>
 
             <Section
               id="extras"
@@ -467,6 +486,12 @@ const Section = ({ id, openSections, toggle, title, icon, children }) => {
                   <div className="flex justify-between text-gray-600">
                     <span>Return ({passengers.length} {passengers.length === 1 ? "passenger" : "passengers"})</span>
                     <span>{currency} {returnFlight.price.toFixed(2)}</span>
+                  </div>
+                )}
+                {selectedSeatServices.length > 0 && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Seat selection ({selectedSeatServices.length} seat{selectedSeatServices.length > 1 ? "s" : ""})</span>
+                    <span>{currency} {seatServicesTotal.toFixed(2)}</span>
                   </div>
                 )}
                 {extras.extraBaggage && (

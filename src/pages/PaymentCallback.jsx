@@ -29,7 +29,7 @@ const PaymentCallback = () => {
           localStorage.getItem("token") || sessionStorage.getItem("token");
 
         const res = await fetch(
-          `${API_BASE}/bookings/verify?reference=${reference}`,
+          `${API_BASE}/verify?reference=${reference}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
