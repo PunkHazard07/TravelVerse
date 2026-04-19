@@ -97,7 +97,7 @@ const navigate = useNavigate();
 
     try {
       //create booking
-      const bookingRes = await fetch(`${API_BASE}/bookings/hotel`, {
+      const bookingRes = await fetch(`${API_BASE}/hotel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +128,7 @@ const navigate = useNavigate();
       
       const bookingId= bookingData.data._id;
 
-      const payRes = await fetch(`${API_BASE}/bookings/initialize`, {
+      const payRes = await fetch(`${API_BASE}/initialize`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -104,7 +104,7 @@ const HotelHero = () => {
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="City, hotel name, or landmark"
+                  placeholder="Lagos, Nigeria"
                   value={formData.destination}
                   onChange={(e) =>
                     handleInputChange("destination", e.target.value)
