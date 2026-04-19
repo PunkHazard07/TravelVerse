@@ -15,7 +15,7 @@ const Explore = () => {
           <article>
             <div className="group relative w-full h-64 md:h-72 rounded-xl overflow-hidden mb-4">
               <img
-                src="/public/h2.jpg"
+                src="h2.jpg"
                 alt="Article cover"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -31,7 +31,7 @@ const Explore = () => {
           <article>
             <div className="group relative w-full h-64 md:h-72 rounded-xl overflow-hidden mb-4">
               <img
-                src="/public/h5.jpg"
+                src="/h5.jpg"
                 alt="Article cover"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -47,7 +47,7 @@ const Explore = () => {
           <article>
             <div className="group relative w-full h-64 md:h-72 rounded-xl overflow-hidden mb-4">
               <img
-                src="/public/h1.jpg"
+                src="/h1.jpg"
                 alt="Article cover"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -63,7 +63,7 @@ const Explore = () => {
           <article>
             <div className="group relative w-full h-64 md:h-72 rounded-xl overflow-hidden mb-4">
               <img
-                src="/public/n4.jpg"
+                src="/n4.jpg"
                 alt="Article cover"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
